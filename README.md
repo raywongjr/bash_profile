@@ -1,2 +1,26 @@
-# bash_profile
-.bash_profile ssh agent function
+Add the following snippet to `~/.bash_profile` to automaticall start ssh agent so you don't have to reauth git with every remote command.
+
+```sh
+# ssh agent
+# -------------------
+SSH_ENV=$HOME/.ssh/environment
+
+function start_agent {
+    echo "Initializing new SSH agent..."
+    # spawn ssh-agent
+    /user/bin/ssh-agent | sed 's/^echo/#echo/' > "${SSH_ENV}"
+    echo succeeded
+    chmod 600 "${SSH_ENV}"
+    . "${SSH_ENV}" > /dev/null
+    /usr/bin/ssh-add
+}
+
+if [ -f "${SSH_ENV}" ]; then
+    . "${SSH_ENV}" > /dev/null
+    ps -ef | grep ${SSH_AGENT_PID} | grep ssh-agent$ > /dev/null || {
+        start_agent;
+    }
+else
+    start_agent;
+fi
+```
